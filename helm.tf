@@ -1,15 +1,3 @@
-resource "kubernetes_storage_class" "gp2" {
-  depends_on = [module.eks-cluster, module.public_subnet, module.node_group]
-  metadata {
-    name = "terraform-example"
-  }
-  storage_provisioner = "ebs.csi.aws.com"
-  volume_binding_mode = "Immediate"
-  reclaim_policy = "Delete"
-  parameters = {
-    type = "gp2"
-  }
-}
 
 
 ################################# AWS-LOADBALANCER-CONTROLLER ################################# 
@@ -85,6 +73,22 @@ resource "helm_release" "alb-ingress-controller"{
 #  }
 #}
 
+#volume_binding_mode는 Immdediate를 사용함
+#만약 WaitForConsumer 사용 시 pvc는 pod의 State가 Running이 될 때까지 Pending되는데
+#grafana Pod는 pvc가 Running이 될 때까지 Pending 상태가 됨
+resource "kubernetes_storage_class" "gp2" {
+  depends_on = [module.eks-cluster, module.public_subnet, module.node_group]
+  metadata {
+    name = "terraform-example"
+  }
+  storage_provisioner = "ebs.csi.aws.com" #이걸 사용해야 ebs-csi-driver addon이 ebs를 생성함
+  volume_binding_mode = "Immediate"
+  reclaim_policy = "Delete"
+  parameters = {
+    type = "gp2"
+  }
+}
+
 ################################# PROMETHEUS ################################# 
 resource "helm_release" "prometheus"{
   count			= var.create_cluster ? 1 : 0
@@ -96,15 +100,11 @@ resource "helm_release" "prometheus"{
   create_namespace = true
   set {
     name = "server.persistentVolume.storageClass"
-    value = "terraform-example"
+    value = "terraform-example" #provisioner가 'ebs.csi.aws.com'인 storage class
   }
   set {
     name  = "alertmanager.persistence.storageClass"
     value = "terraform-example"
-  }
-  set {
-    name = "server.livenessProbeInitialDelay"
-    value = "420"
   }
 }
 ################################# GRAFANA ################################# 
@@ -128,10 +128,6 @@ resource "helm_release" "grafana"{
   set {
     name  = "persistence.storageClassName"
     value = "terraform-example"
-  }
-  set {
-    name = "livenessProbe.initialDelaySeconds"
-    value = "420"
   }
 }
 

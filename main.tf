@@ -315,10 +315,6 @@ module "sg_rule-ng-allow_webhook" {
   sg_rule-source_sg_id = module.eks-cluster[0].cluster-sg #허용할 sg
 }
 
-
-
-
-
 #클러스터 메인 보안 그룹에서 노드 그룹의 https ingress 허용
 module "sg_rule-main_cluster" {
   count			= var.create_cluster ? 1 : 0
@@ -489,6 +485,7 @@ module "addon-aws-ebs-csi-driver"{
   addon-role = module.role-ecd-sa[0].arn
   depends_on = [module.node_group]
 }
+
 ############################ Helm Configuration ###########################
 
 #Role for aws-loadbalacner-controller sa
@@ -547,6 +544,8 @@ module "role-ecd-sa"{
 #  depends_on = [module.eks-cluster]
 #}
 
+
+############################ RDS Configuration ###########################
 resource "aws_db_subnet_group" "default" {
   count = var.create_rds ? 1 : 0
   name       = "main"
@@ -571,22 +570,7 @@ module "rds" {
   rds-multi_az = true
 }
 
-
-resource "null_resource" "update-output_json" {
-  count = 0
-  depends_on = [module.rds, module.rds[0].db_endpoint, module.rds[0].db_name, module.rds[0].db_user, module.rds[0].db_password]
-  provisioner "local-exec" {
-    command = <<EOT
-      echo "********************************************************"
-      sleep 120
-      echo "db_endpoint: ${module.rds[0].db_endpoint}"
-      terraform output -json
-      terraform output -json > ./yyk-server/terraform_outputs.json
-    EOT
-  }
-}
-
-#차라리 이거 사용
+#db 정보를 json 파일로 저장
 resource "local_file" "outputs" {
   count = var.create_rds ? 1 : 0
   content  = jsonencode({
@@ -598,10 +582,15 @@ resource "local_file" "outputs" {
   filename = "./yyk-server/terraform_outputs.json"
 }
 
-#terraform_outputs.json 파일 생성. depends_on에 꼭 output 있는 모든 moudle 넣을 것
-#현재 db_endpoint 값만 terraform_outputs.json에 안 들어감.. 왜지??
-#lock 때문에 command 내에서 terraform refresh는 불가능
 
-#data "aws_route53_zone" "selected" {
-#  name         = "dududrb.shop"
-#}
+#CRUD 이미지 빌드하기
+resource "null_resource" "build_image" {
+  count = var.create_rds ? 1 : 0
+  depends_on = [local_file.outputs] #output update하고 build해야 함
+  provisioner "local-exec" {
+    command = <<EOT
+      docker build -t dminus251/test:latest ./yyk-server/
+      docker push dminus251/test:latest
+    EOT
+  }
+}

@@ -176,20 +176,6 @@ resource "kubernetes_ingress_v1" "ingress-crud" {
   }
 }
 
-#CRUD 이미지 빌드하기
-resource "null_resource" "build_image" {
-  count = var.create_rds ? 1 : 0
-  depends_on = [local_file.outputs] #output update하고 build해야 함
-  provisioner "local-exec" {
-    command = <<EOT
-      docker build -t dminus251/test:latest ./yyk-server/
-      docker push dminus251/test:latest
-    EOT
-  }
-}
-
-
-
 #Service for Grafana
 resource "kubernetes_service_v1" "service-grafana" {
   count			= var.create_cluster ? 1 : 0
@@ -206,6 +192,28 @@ resource "kubernetes_service_v1" "service-grafana" {
     port {
       port        = 3000
       target_port = 3000
+      protocol = "TCP"
+    }
+  }
+}
+
+
+#ClusterIP: grafana가 prometheus 메트릭을 얻어오기 위해 사용함
+resource "kubernetes_service_v1" "cluster-ip" {
+  count			= var.create_cluster ? 1 : 0
+  depends_on = [module.eks-cluster, module.node_group, helm_release.prometheus]
+  metadata {
+    name = "practice-clusterip"
+    namespace = "monitoring"
+  }
+  spec {
+    type = "ClusterIP"
+    selector = {
+      "app.kubernetes.io/name" =  "prometheus"
+    }
+    port {
+      port        = 9090
+      target_port = 9090
       protocol = "TCP"
     }
   }
