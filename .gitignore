@@ -1,0 +1,3 @@
+terraform.*
+.terraform/
+.yyk-server/terraform_outputs.json
