@@ -218,3 +218,23 @@ resource "kubernetes_service_v1" "cluster-ip" {
     }
   }
 }
+
+
+
+#Provisioner가 'ebs.csi.aws.com'인 storageClass 생성 
+#volume_binding_mode는 Immdediate를 사용함
+#만약 WaitForFirstConsumer 사용 시 pvc는 pod의 State가 Running이 될 때까지 Pending되는데
+#grafana Pod는 pvc가 Running이 될 때까지 Pending 상태가 됨
+#즉 pvc와 pod가 서로 running 상태가 될 때까지 기다리는 교착 상태 발생
+resource "kubernetes_storage_class" "gp2" {
+  depends_on = [module.eks-cluster, module.public_subnet, module.node_group]
+  metadata {
+    name = "terraform-example"
+  }
+  storage_provisioner = "ebs.csi.aws.com" #이걸 사용해야 ebs-csi-driver addon이 ebs를 생성함
+  volume_binding_mode = "Immediate"
+  reclaim_policy = "Delete"
+  parameters = {
+    type = "gp2"
+  }
+}

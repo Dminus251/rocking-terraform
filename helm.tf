@@ -1,5 +1,3 @@
-
-
 ################################# AWS-LOADBALANCER-CONTROLLER ################################# 
 resource "helm_release" "alb-ingress-controller"{
   count			= var.create_cluster ? 1 : 0
@@ -47,7 +45,6 @@ resource "helm_release" "alb-ingress-controller"{
     name  = "webhook.service.targetPort"
     value = "9443"
   }
-# helm_release.cert-manager 주석 해제할 경우 주석 해제
 #  set { #helm_release.cert-manager 주석 해제할 경우 주석 해제
 #    name = "enableCertManager"
 #   value = "true"
@@ -73,22 +70,6 @@ resource "helm_release" "alb-ingress-controller"{
 #  }
 #}
 
-#volume_binding_mode는 Immdediate를 사용함
-#만약 WaitForConsumer 사용 시 pvc는 pod의 State가 Running이 될 때까지 Pending되는데
-#grafana Pod는 pvc가 Running이 될 때까지 Pending 상태가 됨
-resource "kubernetes_storage_class" "gp2" {
-  depends_on = [module.eks-cluster, module.public_subnet, module.node_group]
-  metadata {
-    name = "terraform-example"
-  }
-  storage_provisioner = "ebs.csi.aws.com" #이걸 사용해야 ebs-csi-driver addon이 ebs를 생성함
-  volume_binding_mode = "Immediate"
-  reclaim_policy = "Delete"
-  parameters = {
-    type = "gp2"
-  }
-}
-
 ################################# PROMETHEUS ################################# 
 resource "helm_release" "prometheus"{
   count			= var.create_cluster ? 1 : 0
@@ -98,15 +79,19 @@ resource "helm_release" "prometheus"{
   chart = "prometheus" # chart name
   namespace = "monitoring"
   create_namespace = true
+
+  #prometheus, grafana의 pvc는 프로비저너가 'ebs.csi.aws.com'인 storage class를 요구함
+  #이 storageClass는 kubernetes.tf에 정의되어 있음
   set {
     name = "server.persistentVolume.storageClass"
-    value = "terraform-example" #provisioner가 'ebs.csi.aws.com'인 storage class
+    value = "terraform-example" 
   }
   set {
     name  = "alertmanager.persistence.storageClass"
     value = "terraform-example"
   }
 }
+
 ################################# GRAFANA ################################# 
 resource "helm_release" "grafana"{
   count			= var.create_cluster ? 1 : 0

@@ -410,7 +410,30 @@ module "sg_rule-main_cluster-allow_webhook" {
   depends_on = [module.eks-cluster]
 }
 
+#클러스터 메인 보안 그룹에, private subnet으로부터 온 DNS 포트 53번 허용
+module "sg_rule-main_cluster-allow_codrDNS-53" {
+  count			= var.create_cluster ? 1 : 0
+  source = "./modules/t-aws-sg_rule-cidr"
+  sg_rule-type = "ingress"
+  sg_rule-from_port = 53
+  sg_rule-to_port = 53
+  sg_rule-protocol = "tcp"
+  sg_rule-sg_id = module.sg-cluster[0].sg-id #규칙을 적용할 sg
+  sg_rule-cidr_blocks = ["10.0.0.0/24", "10.0.2.0/24"] #허용할 cidr
+}
 
+
+#클러스터 메인 보안 그룹에, private subnet으로부터 온 codrDNS 포트 9153번 허용
+module "sg_rule-main_cluster-allow_codrDNS-9153" {
+  count			= var.create_cluster ? 1 : 0
+  source = "./modules/t-aws-sg_rule-cidr"
+  sg_rule-type = "ingress"
+  sg_rule-from_port = 9153
+  sg_rule-to_port = 9153
+  sg_rule-protocol = "tcp"
+  sg_rule-sg_id = module.sg-cluster[0].sg-id #규칙을 적용할 sg
+  sg_rule-cidr_blocks = ["10.0.0.0/24", "10.0.2.0/24"] #허용할 cidr
+}
 module "sg_rule-cluster-outbound" {
   count			= var.create_cluster ? 1 : 0
   source = "./modules/t-aws-sg_rule-cidr"
