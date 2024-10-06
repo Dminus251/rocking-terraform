@@ -162,11 +162,11 @@ data "aws_key_pair" "example" {
 #}
 
 #Securty Group for Public EC2
-module "sg-public_ec2" { #
-  source    = "./modules/t-aws-sg"
-  sg-vpc_id = module.vpc.vpc-id 
-  sg-name   = "sg_public" #sg 이름에 하이픈('-') 사용 불가
-}
+#module "sg-public_ec2" { #
+#  source    = "./modules/t-aws-sg"
+#  sg-vpc_id = module.vpc.vpc-id 
+#  sg-name   = "sg_public" #sg 이름에 하이픈('-') 사용 불가
+#}
 
 #Security Group Rule for sg-public_ec2: Allow Ingress SSH Traffic from Internet
 module "sg_rule-public_ec2-allow_ingress_ssh-internet" {
@@ -194,7 +194,7 @@ module "eks-cluster"{
   count			= var.create_cluster ? 1 : 0
   source 		= "./modules/t-aws-eks/cluster"
   cluster-name 		= var.cluster-name
-  cluster-sg		= [module.sg-cluster[0].sg-id,]
+  cluster-sg		= [module.sg-cluster[0].sg-id,] #클러스터 메인 보안 그룹
   cluster-role_arn 	= module.eks-role[0].arn
   cluster-subnet_ids 	= [ for i in module.private_subnet: i["private_subnet-id"] ]
 }
@@ -411,27 +411,27 @@ module "sg_rule-main_cluster-allow_webhook" {
 }
 
 #클러스터 메인 보안 그룹에, private subnet으로부터 온 DNS 포트 53번 허용
-module "sg_rule-main_cluster-allow_codrDNS-53" {
+module "sg_rule-main_cluster-allow_coreDNS-53" {
   count			= var.create_cluster ? 1 : 0
   source = "./modules/t-aws-sg_rule-cidr"
   sg_rule-type = "ingress"
   sg_rule-from_port = 53
   sg_rule-to_port = 53
   sg_rule-protocol = "tcp"
-  sg_rule-sg_id = module.sg-cluster[0].sg-id #규칙을 적용할 sg
+  sg_rule-sg_id = module.eks-cluster[0].cluster-sg #규칙을 적용할 sg
   sg_rule-cidr_blocks = ["10.0.0.0/24", "10.0.2.0/24"] #허용할 cidr
 }
 
 
 #클러스터 메인 보안 그룹에, private subnet으로부터 온 codrDNS 포트 9153번 허용
-module "sg_rule-main_cluster-allow_codrDNS-9153" {
+module "sg_rule-main_cluster-allow_coreDNS-9153" {
   count			= var.create_cluster ? 1 : 0
   source = "./modules/t-aws-sg_rule-cidr"
   sg_rule-type = "ingress"
   sg_rule-from_port = 9153
   sg_rule-to_port = 9153
   sg_rule-protocol = "tcp"
-  sg_rule-sg_id = module.sg-cluster[0].sg-id #규칙을 적용할 sg
+  sg_rule-sg_id = module.eks-cluster[0].cluster-sg #규칙을 적용할 sg
   sg_rule-cidr_blocks = ["10.0.0.0/24", "10.0.2.0/24"] #허용할 cidr
 }
 module "sg_rule-cluster-outbound" {
