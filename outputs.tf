@@ -13,3 +13,11 @@ output "db_password" {
   value = var.create_rds ? module.rds[0].db_password : null
   sensitive = true
 }
+
+output "private_subent"{
+  value = module.private_subnet
+}
+
+output "node_group"{
+  value = module.node_group
+}

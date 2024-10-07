@@ -1,0 +1,62 @@
+yyk@localhost:~/rocking-terraform$ k get po -n kube-system -o wide
+NAME                                            READY   STATUS    RESTARTS   AGE     IP           NODE                                           NOMINATED NODE   READINESS GATES
+ebs-csi-controller-76747c7b84-cz788             6/6     Running   0          6m57s   10.0.0.169   ip-10-0-0-47.ap-northeast-2.compute.internal   <none>           <none>
+ebs-csi-controller-76747c7b84-lrt9b             6/6     Running   0          6m57s   10.0.2.136   ip-10-0-2-90.ap-northeast-2.compute.internal   <none>           <none>
+ebs-csi-node-bhf2b                              3/3     Running   0          6m57s   10.0.0.213   ip-10-0-0-47.ap-northeast-2.compute.internal   <none>           <none>
+ebs-csi-node-xxmp7                              3/3     Running   0          6m57s   10.0.2.86    ip-10-0-2-90.ap-northeast-2.compute.internal   <none>           <none>
+
+
+
+#10.0.0.0/24 컨트롤러
+yyk@localhost:~/rocking-terraform$ k logs ebs-csi-controller-76747c7b84-cz788 -n kube-system
+Defaulted container "ebs-plugin" out of: ebs-plugin, csi-provisioner, csi-attacher, csi-snapshotter, csi-resizer, liveness-probe
+I1007 01:51:01.889974       1 main.go:151] "Region provided via AWS_REGION environment variable" region="ap-northeast-2"
+I1007 01:51:01.891588       1 driver.go:69] "Driver Information" Driver="ebs.csi.aws.com" Version="v1.35.0"
+I1007 01:52:11.299017       1 controller.go:415] "ControllerPublishVolume: attaching" volumeID="vol-0023a03f5e64268e3" nodeID="i-0e4f3cbb29bbac9b3"
+I1007 01:52:12.296763       1 controller.go:415] "ControllerPublishVolume: attaching" volumeID="vol-01afd2c5f18da5de6" nodeID="i-098f1462a35ed260a"
+I1007 01:52:12.915630       1 controller.go:424] "ControllerPublishVolume: attached" volumeID="vol-0023a03f5e64268e3" nodeID="i-0e4f3cbb29bbac9b3" devicePath="/dev/xvdaa"
+I1007 01:52:13.950234       1 controller.go:424] "ControllerPublishVolume: attached" volumeID="vol-01afd2c5f18da5de6" nodeID="i-098f1462a35ed260a" devicePath="/dev/xvdaa"
+I1007 01:52:13.958894       1 controller.go:415] "ControllerPublishVolume: attaching" volumeID="vol-01afd2c5f18da5de6" nodeID="i-098f1462a35ed260a"
+I1007 01:52:14.333660       1 controller.go:415] "ControllerPublishVolume: attaching" volumeID="vol-03b9fdfda99e7f035" nodeID="i-0e4f3cbb29bbac9b3"
+I1007 01:52:15.228782       1 cloud.go:1106] "Waiting for volume state" volumeID="vol-03b9fdfda99e7f035" actual="attaching" desired="attached"
+I1007 01:52:15.228781       1 controller.go:424] "ControllerPublishVolume: attached" volumeID="vol-01afd2c5f18da5de6" nodeID="i-098f1462a35ed260a" devicePath="/dev/xvdaa"
+I1007 01:52:16.822370       1 controller.go:424] "ControllerPublishVolume: attached" volumeID="vol-03b9fdfda99e7f035" nodeID="i-0e4f3cbb29bbac9b3" devicePath="/dev/xvdab"
+
+
+
+#10.0.2.0/24 컨트롤러
+yyk@localhost:~/rocking-terraform$ k logs ebs-csi-controller-76747c7b84-lrt9b -n kube-system
+Defaulted container "ebs-plugin" out of: ebs-plugin, csi-provisioner, csi-attacher, csi-snapshotter, csi-resizer, liveness-probe
+I1007 01:51:01.471705       1 main.go:151] "Region provided via AWS_REGION environment variable" region="ap-northeast-2"
+I1007 01:51:01.473931       1 driver.go:69] "Driver Information" Driver="ebs.csi.aws.com" Version="v1.35.0"
+
+
+#10.0.0.0/24 csi 노드
+yyk@localhost:~/rocking-terraform$ k logs ebs-csi-node-bhf2b -n kube-system
+Defaulted container "ebs-plugin" out of: ebs-plugin, node-driver-registrar, liveness-probe
+I1007 01:51:01.864883       1 main.go:157] "Initializing metadata"
+I1007 01:51:01.875158       1 metadata.go:48] "Retrieved metadata from IMDS"
+I1007 01:51:01.876021       1 driver.go:69] "Driver Information" Driver="ebs.csi.aws.com" Version="v1.35.0"
+E1007 01:51:02.901983       1 node.go:864] "Unexpected failure when attempting to remove node taint(s)" err="isAllocatableSet: driver not found on node ip-10-0-0-47.ap-northeast-2.compute.internal"
+E1007 01:51:03.419387       1 node.go:864] "Unexpected failure when attempting to remove node taint(s)" err="isAllocatableSet: driver not found on node ip-10-0-0-47.ap-northeast-2.compute.internal"
+I1007 01:51:04.430491       1 node.go:944] "CSINode Allocatable value is set" nodeName="ip-10-0-0-47.ap-northeast-2.compute.internal" count=25
+I1007 01:52:14.615131       1 mount_linux.go:618] Disk "/dev/nvme1n1" appears to be unformatted, attempting to format as type: "ext4" with options: [-F -m0 /dev/nvme1n1]
+I1007 01:52:14.772294       1 mount_linux.go:629] Disk successfully formatted (mkfs): ext4 - /dev/nvme1n1 /var/lib/kubelet/plugins/kubernetes.io/csi/ebs.csi.aws.com/8b4b8f9fd4ee939006c68a0323fea8897e4fac9d3cbbb87a4acd5bf3b8740e05/globalmount
+I1007 01:52:14.772972       1 mount_linux.go:295] Detected OS without systemd
+
+
+
+#10.0.2.0/242 csi 노드
+yyk@localhost:~/rocking-terraform$ k logs ebs-csi-node-xxmp7 -n kube-system
+Defaulted container "ebs-plugin" out of: ebs-plugin, node-driver-registrar, liveness-probe
+I1007 01:51:01.479978       1 main.go:157] "Initializing metadata"
+I1007 01:51:01.487964       1 metadata.go:48] "Retrieved metadata from IMDS"
+I1007 01:51:01.490330       1 driver.go:69] "Driver Information" Driver="ebs.csi.aws.com" Version="v1.35.0"
+E1007 01:51:32.491622       1 node.go:864] "Unexpected failure when attempting to remove node taint(s)" err="Get \"https://172.20.0.1:443/api/v1/nodes/ip-10-0-2-90.ap-northeast-2.compute.internal\": dial tcp 172.20.0.1:443: i/o timeout"
+E1007 01:52:02.993347       1 node.go:864] "Unexpected failure when attempting to remove node taint(s)" err="Get \"https://172.20.0.1:443/api/v1/nodes/ip-10-0-2-90.ap-northeast-2.compute.internal\": dial tcp 172.20.0.1:443: i/o timeout"
+I1007 01:52:04.026592       1 node.go:944] "CSINode Allocatable value is set" nodeName="ip-10-0-2-90.ap-northeast-2.compute.internal" count=26
+I1007 01:52:13.166541       1 mount_linux.go:618] Disk "/dev/nvme1n1" appears to be unformatted, attempting to format as type: "ext4" with options: [-F -m0 /dev/nvme1n1]
+I1007 01:52:13.354709       1 mount_linux.go:629] Disk successfully formatted (mkfs): ext4 - /dev/nvme1n1 /var/lib/kubelet/plugins/kubernetes.io/csi/ebs.csi.aws.com/4a0822a4e9d50dcde19676b7124791a6b4fc14ae5ae106b20f731c14972363a1/globalmount
+I1007 01:52:13.354831       1 mount_linux.go:295] Detected OS without systemd
+I1007 01:52:22.736238       1 mount_linux.go:618] Disk "/dev/nvme2n1" appears to be unformatted, attempting to format as type: "ext4" with options: [-F -m0 /dev/nvme2n1]
+I1007 01:52:23.025367       1 mount_linux.go:629] Disk successfully formatted (mkfs): ext4 - /dev/nvme2n1 /var/lib/kubelet/plugins/kubernetes.io/csi/ebs.csi.aws.com/0b66fa7b80f8c647b47080f49f6c3c0ec67ed836ed47aeeef88906a41ba09a57/globalmount

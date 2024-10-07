@@ -19,3 +19,7 @@ variable "ng-lt_id"{
   description = "id of launch template for node group"
   type = string
 }
+
+variable "ng-labels"{
+  type = map(string)
+}

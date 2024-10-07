@@ -107,3 +107,53 @@ yyk@localhost:~/rocking-terraform$ k get po -o wide -n monitoring
 NAME                                                          READY   STATUS    RESTARTS   AGE   IP           NODE                                           NOMINATED NODE   READINESS GATES
 pod-crud                                                      1/1     Running   0          25m   10.0.0.179   ip-10-0-0-76.ap-northeast-2.compute.internal   <none>           <none>
 practice-grafana-974b644dd-nzwwn                              1/1     Running   0          26m   10.0.2.133   ip-10-0-2-93.ap-northeast-2.compute.internal   <none>           <none>
+
+노드의 보안 그룹에서도 53 포트를 허용해야 하나?
+  -> 그럴 필요는 없어보임 이미 core-dns라는 서비스가 배포되어 있어서 coredns pod에 접근이 가능함
+그렇다면 curl google.com이 실패하는 건 인터넷 연결 문제일 가능성이 큼.. 네트워크 부분을 더 확인해보자
+
+gpt 답변이긴 하지만
+외부 dns 요청의 경우 노드 그룹에서 53번 포트를 허용해야 한다고 함
+pod의 sh에선 apt update 명령이 실행되지 않고, pod와 같은 서브넷에 직접 ec2를 생성하면 apt update 명령이 실행되는 걸 보아
+아마 이 경우에 속하지 않을까 싶음
+내일 다시 
+  1) 일단 현재 코드로 pod에서 apt update 해보고
+  2) 노드 그룹에 53 허용해서 apt update 해보자
+
+근데 하긴 클러스터 보안 그룹은 control plane과 cluster resource 간의 통신을 제어하니까
+노드 그룹의 보안 그룹에 53을 허용하는 게 더 그럴듯하네
+긜고 pvc Bound된 경우 ebs-csi-controller 두 개 logs로 뭐가 리더 pod인지 확인해보자
+일단 10.0.0.0/24인 경우엔 계속 pending되는 것 같음
+node끼리 모든 포트를 노출하는 방법은 없나 이것도 확인해보자
+
+NAME                                            READY   STATUS    RESTARTS   AGE   IP           NODE                                            NOMINATED NODE   READINESS GATES
+ebs-csi-controller-76747c7b84-dbdl8             6/6     Running   0          17m   10.0.0.108   ip-10-0-0-213.ap-northeast-2.compute.internal   <none>           <none>
+ebs-csi-controller-76747c7b84-lvndl             6/6     Running   0          17m   10.0.2.73    ip-10-0-2-124.ap-northeast-2.compute.internal   <none>           <none>
+ebs-csi-node-9g7q2                              3/3     Running   0          17m   10.0.0.166   ip-10-0-0-213.ap-northeast-2.compute.internal   <none>           <none>
+ebs-csi-node-zjrn7                              3/3     Running   0          17m   10.0.2.232   ip-10-0-2-124.ap-northeast-2.compute.internal   <none>           <none>
+
+10.0.0.0/24 로그
+yyk@localhost:~/practice_terraform/demo10-docker$ k logs ebs-csi-controller-76747c7b84-dbdl8 -n kube-system
+Defaulted container "ebs-plugin" out of: ebs-plugin, csi-provisioner, csi-attacher, csi-snapshotter, csi-resizer, liveness-probe
+I1007 01:08:57.039760       1 main.go:151] "Region provided via AWS_REGION environment variable" region="ap-northeast-2"
+I1007 01:08:57.041513       1 driver.go:69] "Driver Information" Driver="ebs.csi.aws.com" Version="v1.35.0"
+E1007 01:10:50.036676       1 driver.go:108] "GRPC error" err="rpc error: code = Internal desc = Could not create volume \"pvc-1826038d-6cc9-4a11-a1cc-725540ca9661\": could not create volume in EC2: operation error EC2: CreateVolume, https response error StatusCode: 0, RequestID: , canceled, context canceled"
+E1007 01:10:54.499859       1 driver.go:108] "GRPC error" err="rpc error: code = Internal desc = Could not create volume \"pvc-54aad6f0-03c9-481a-91ea-0fb29b9983e4\": could not create volume in EC2: operation error EC2: CreateVolume, https response error StatusCode: 0, RequestID: , canceled, context canceled"
+E1007 01:10:54.902400       1 driver.go:108] "GRPC error" err="rpc error: code = Internal desc = Could not create volume \"pvc-85a722b4-e6c1-4472-b906-6a1dcb14e983\": could not create volume in EC2: operation error EC2: CreateVolume, https response error StatusCode: 0, RequestID: , canceled, context canceled"
+I1007 01:11:45.140391       1 controller.go:415] "ControllerPublishVolume: attaching" volumeID="vol-0788d8434caa81b93" nodeID="i-090ecfbb8fe61c637"
+I1007 01:11:46.457494       1 cloud.go:1106] "Waiting for volume state" volumeID="vol-0788d8434caa81b93" actual="attaching" desired="attached"
+I1007 01:11:47.104297       1 controller.go:415] "ControllerPublishVolume: attaching" volumeID="vol-04f849e516eec250a" nodeID="i-0ad8f5323e3335265"
+I1007 01:11:48.065566       1 controller.go:424] "ControllerPublishVolume: attached" volumeID="vol-0788d8434caa81b93" nodeID="i-090ecfbb8fe61c637" devicePath="/dev/xvdaa"
+I1007 01:11:48.728670       1 controller.go:424] "ControllerPublishVolume: attached" volumeID="vol-04f849e516eec250a" nodeID="i-0ad8f5323e3335265" devicePath="/dev/xvdaa"
+I1007 01:11:48.738753       1 controller.go:415] "ControllerPublishVolume: attaching" volumeID="vol-04f849e516eec250a" nodeID="i-0ad8f5323e3335265"
+I1007 01:11:49.902486       1 controller.go:424] "ControllerPublishVolume: attached" volumeID="vol-04f849e516eec250a" nodeID="i-0ad8f5323e3335265" devicePath="/dev/xvdaa"
+I1007 01:11:51.170595       1 controller.go:415] "ControllerPublishVolume: attaching" volumeID="vol-09304502c56df0885" nodeID="i-0ad8f5323e3335265"
+I1007 01:11:52.781328       1 controller.go:424] "ControllerPublishVolume: attached" volumeID="vol-09304502c56df0885" nodeID="i-0ad8f5323e3335265" devicePath="/dev/xvdab"
+I1007 01:11:52.791083       1 controller.go:415] "ControllerPublishVolume: attaching" volumeID="vol-09304502c56df0885" nodeID="i-0ad8f5323e3335265"
+I1007 01:11:53.986918       1 controller.go:424] "ControllerPublishVolume: attached" volumeID="vol-09304502c56df0885" nodeID="i-0ad8f5323e3335265" devicePath="/dev/xvdab"
+
+10.0.2.0/24 로그
+yyk@localhost:~/practice_terraform/demo10-docker$ k logs ebs-csi-controller-76747c7b84-lvndl -n kube-system
+Defaulted container "ebs-plugin" out of: ebs-plugin, csi-provisioner, csi-attacher, csi-snapshotter, csi-resizer, liveness-probe
+I1007 01:08:57.621446       1 main.go:151] "Region provided via AWS_REGION environment variable" region="ap-northeast-2"
+I1007 01:08:57.623182       1 driver.go:69] "Driver Information" Driver="ebs.csi.aws.com" Version="v1.35.0"

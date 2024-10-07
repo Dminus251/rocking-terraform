@@ -162,11 +162,11 @@ data "aws_key_pair" "example" {
 #}
 
 #Securty Group for Public EC2
-#module "sg-public_ec2" { #
-#  source    = "./modules/t-aws-sg"
-#  sg-vpc_id = module.vpc.vpc-id 
-#  sg-name   = "sg_public" #sg 이름에 하이픈('-') 사용 불가
-#}
+module "sg-public_ec2" { #
+  source    = "./modules/t-aws-sg"
+  sg-vpc_id = module.vpc.vpc-id 
+  sg-name   = "sg_public" #sg 이름에 하이픈('-') 사용 불가
+}
 
 #Security Group Rule for sg-public_ec2: Allow Ingress SSH Traffic from Internet
 module "sg_rule-public_ec2-allow_ingress_ssh-internet" {
@@ -418,7 +418,8 @@ module "sg_rule-main_cluster-allow_coreDNS-53" {
   sg_rule-from_port = 53
   sg_rule-to_port = 53
   sg_rule-protocol = "tcp"
-  sg_rule-sg_id = module.eks-cluster[0].cluster-sg #규칙을 적용할 sg
+  #sg_rule-sg_id = module.eks-cluster[0].cluster-sg #규칙을 적용할 sg
+  sg_rule-sg_id = module.sg-node_group[0].sg-id #규칙을 적용할 sg
   sg_rule-cidr_blocks = ["10.0.0.0/24", "10.0.2.0/24"] #허용할 cidr
 }
 
@@ -431,7 +432,8 @@ module "sg_rule-main_cluster-allow_coreDNS-9153" {
   sg_rule-from_port = 9153
   sg_rule-to_port = 9153
   sg_rule-protocol = "tcp"
-  sg_rule-sg_id = module.eks-cluster[0].cluster-sg #규칙을 적용할 sg
+  #sg_rule-sg_id = module.eks-cluster[0].cluster-sg #규칙을 적용할 sg
+  sg_rule-sg_id = module.sg-node_group[0].sg-id #규칙을 적용할 sg
   sg_rule-cidr_blocks = ["10.0.0.0/24", "10.0.2.0/24"] #허용할 cidr
 }
 module "sg_rule-cluster-outbound" {
@@ -477,16 +479,16 @@ module "lt-ng"{
 
 module "node_group"{
   for_each         = var.create_cluster ? {for i, subnet in module.private_subnet: i => subnet} : {}
-  #count		   = var.create_cluster ? 1 : 0
-  #count와 for_each를 같이 사용할 수 없어서 이렇게 했는데 일단 apply해보자.
   source 	   = "./modules/t-aws-eks/ng"
   cluster-name     = module.eks-cluster[0].cluster-name
   ng-name 	   = "practice-ng-${each.key}"
   ng-role_arn      = module.ng-role[0].arn
-  #subnet-id        = [module.private_subnet[0].private_subnet-id]
   subnet-id	   = [each.value["private_subnet-id"]]
   ng-lt_id         = module.lt-ng[0].lt_id 
   depends_on       = [module.eks-cluster, module.ng-role]
+  ng-labels	   = {
+    "subnet" = each.key == 0 ? "private_subent-2a" : "private_subnet-2b"
+  }
 }
 
 
