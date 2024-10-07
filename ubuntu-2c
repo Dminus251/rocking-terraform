@@ -1,0 +1,120 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: "2024-10-07T05:21:50Z"
+  name: ubuntu-2c
+  namespace: default
+  resourceVersion: "3870"
+  uid: 3bbf4c16-2797-471e-93b6-c22002c7a333
+spec:
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - preference:
+          matchExpressions:
+          - key: subnet
+            operator: In
+            values:
+            - private_subnet-2a
+        weight: 100
+  automountServiceAccountToken: true
+  containers:
+  - command:
+    - sleep
+    - infinity
+    image: ubuntu:latest
+    imagePullPolicy: Always
+    name: ubuntu
+    ports:
+    - containerPort: 5002
+      protocol: TCP
+    resources: {}
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-wjlts
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  nodeName: ip-10-0-0-240.ap-northeast-2.compute.internal
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext: {}
+  serviceAccount: default
+  serviceAccountName: default
+  shareProcessNamespace: false
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - name: kube-api-access-wjlts
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2024-10-07T05:21:52Z"
+    status: "True"
+    type: PodReadyToStartContainers
+  - lastProbeTime: null
+    lastTransitionTime: "2024-10-07T05:21:50Z"
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2024-10-07T05:21:52Z"
+    status: "True"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2024-10-07T05:21:52Z"
+    status: "True"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2024-10-07T05:21:50Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: containerd://51112de6e62cd6710697b2fea4d42776ee668c536c333b6243fb4a10297740bc
+    image: docker.io/library/ubuntu:latest
+    imageID: docker.io/library/ubuntu@sha256:b359f1067efa76f37863778f7b6d0e8d911e3ee8efa807ad01fbf5dc1ef9006b
+    lastState: {}
+    name: ubuntu
+    ready: true
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2024-10-07T05:21:52Z"
+  hostIP: 10.0.0.240
+  hostIPs:
+  - ip: 10.0.0.240
+  phase: Running
+  podIP: 10.0.0.119
+  podIPs:
+  - ip: 10.0.0.119
+  qosClass: BestEffort
+  startTime: "2024-10-07T05:21:50Z"

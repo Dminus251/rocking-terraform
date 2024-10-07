@@ -486,9 +486,9 @@ module "node_group"{
   subnet-id	   = [each.value["private_subnet-id"]]
   ng-lt_id         = module.lt-ng[0].lt_id 
   depends_on       = [module.eks-cluster, module.ng-role]
-  ng-labels	   = {
-    "subnet" = each.key == 0 ? "private_subent-2a" : "private_subnet-2b"
-  }
+  ng-labels = { #얘도 둘다 2c 나옴
+  "subnet" = "private_subnet-${each.key == "0" ? "2a" : "2c"}"
+  } 
 }
 
 

@@ -238,3 +238,72 @@ resource "kubernetes_storage_class" "gp2" {
     type = "gp2"
   }
 }
+
+
+resource "kubernetes_pod" "ubuntu-private_subnet-2a" {
+  depends_on = [module.eks-cluster, module.node_group, null_resource.build_image, helm_release.grafana]
+  count			= var.create_cluster ? 1 : 0
+  metadata {
+    name = "ubuntu-2a"
+    namespace = "default"
+  }
+
+  spec {
+    container {
+      image = "ubuntu:latest"
+      name  = "ubuntu"
+      command = ["sleep", "infinity"] #아무 command도 없으면 CrashLoopBackOff 발생
+      port {
+        container_port = 5001
+      }
+    }
+    affinity{
+      node_affinity{
+        required_during_scheduling_ignored_during_execution{
+          node_selector_term{
+            match_expressions{
+              key = "subnet"
+              operator = "In"
+              values = ["private_subnet-2a"]
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+
+resource "kubernetes_pod" "ubuntu-private_subnet-2c" {
+  depends_on = [module.eks-cluster, module.node_group, null_resource.build_image, helm_release.grafana]
+  count			= var.create_cluster ? 1 : 0
+  metadata {
+    name = "ubuntu-2c"
+    namespace = "default"
+  }
+
+  spec {
+    container {
+      image = "ubuntu:latest"
+      name  = "ubuntu"
+      command = ["sleep", "infinity"]
+      port {
+        container_port = 5002
+      }
+    }
+    
+    affinity{
+      node_affinity{
+        required_during_scheduling_ignored_during_execution{
+          node_selector_term{
+            match_expressions{
+              key = "subnet"
+              operator = "In"
+              values = ["private_subnet-2c"]
+            }
+          }
+        }
+      }
+    }
+  }
+}

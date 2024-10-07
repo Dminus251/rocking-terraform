@@ -21,3 +21,7 @@ output "private_subent"{
 output "node_group"{
   value = module.node_group
 }
+
+output "nodegroup_map"{
+  value =  {for i, subnet in module.private_subnet: i => subnet}
+}
