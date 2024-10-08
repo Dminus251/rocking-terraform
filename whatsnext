@@ -221,3 +221,9 @@ options ndots:5
 
 클러스터와 통신하려면 prometheus, crud에 이 내용도 추가해야 할 것 같다
 prometheus-server는 /bin/sh 사용해야 함
+
+드디어 성공!! 결국 dns 문제였네
+grafana pod에 접속해서 아래 명령 중 하나 입력해서 테스트
+  - curl http://practice-clusterip.monitoring.svc.cluster.local:9090
+  - curl http://{service_ip}:9090
+/metrics 경로에 curl 보내면 메트릭 얻어올 수 있음

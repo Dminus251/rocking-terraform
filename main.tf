@@ -8,7 +8,6 @@ locals {
 
 
 ############################ NETWORK Configuration ###########################
-
 #VPC
 module "vpc" { 
   source = "./modules/t-aws-vpc"
@@ -138,17 +137,6 @@ module "rta-internet_to_nat" {
   subnet-id = module.private_subnet[count.index].private_subnet-id
   rt-id = module.route_table-internet_to_nat[count.index].rt-id
 }
-
-
-#key_name이 0827인 key_pair 찾아옴
-data "aws_key_pair" "example" {
-  key_name           = "0827"
-  include_public_key = true
-
-}
-
-
-################################ EC2 Configuration ###########################
 
 #Public EC2
 #module "ec2_public" {
