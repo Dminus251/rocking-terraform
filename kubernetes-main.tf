@@ -316,3 +316,4 @@ resource "kubernetes_pod" "ubuntu-private_subnet-2c" {
     }
   }
 }
+

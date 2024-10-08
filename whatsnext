@@ -214,3 +214,8 @@ DNS CONFIG 추가했더니 private-2a와 private-2c 모두에서 apt update 성�
 그리고 아마 prometheus, grafana, crud, ebs-csi-controller에서도 필요함
 얘네도 각각 들어가봐서 /etc/resolve.conf가 있는지 확인해보기
 ebs는 addon인데 helm으로 바꿔야 하나? (addon은 dns_config 수정 불가)
+
+dns_config 설정하지 않은 우분투의 /etc/resolve.conf 내용은 아래와 같음
+search default.svc.cluster.local svc.cluster.local cluster.local ap-northeast-2.compute.internal
+nameserver 172.20.0.10
+options ndots:5

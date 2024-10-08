@@ -90,6 +90,14 @@ resource "helm_release" "prometheus"{
     name  = "alertmanager.persistence.storageClass"
     value = "terraform-example"
   }
+  set {
+    name = "server.dnsPolicy"
+    value = "None"
+  }
+  set {
+    name = "server.dnsConfig.nameservers[0]"
+    value = "8.8.8.8"
+  }
 }
 
 ################################# GRAFANA ################################# 
@@ -114,5 +122,12 @@ resource "helm_release" "grafana"{
     name  = "persistence.storageClassName"
     value = "terraform-example"
   }
+  set {
+    name = "dnsPolicy"
+    value = "None"
+  }
+  set {
+    name = "dnsConfig.nameservers[0]"
+    value = "8.8.8.8"
+  } 
 }
-
