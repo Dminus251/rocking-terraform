@@ -6,7 +6,7 @@ resource "helm_release" "alb-ingress-controller"{
   repository = "https://aws.github.io/eks-charts"
   name = "aws-load-balancer-controller" #release name
   chart = "aws-load-balancer-controller" #chart name
-  version = "1.8.2"
+  version = "1.9.0"
   namespace = "kube-system"
   set {
 	name  = "clusterName"
@@ -73,7 +73,7 @@ resource "helm_release" "alb-ingress-controller"{
 ################################# PROMETHEUS ################################# 
 resource "helm_release" "prometheus"{
   count			= var.create_cluster ? 1 : 0
-  depends_on = [module.eks-cluster, module.addon-aws-ebs-csi-driver, module.node_group, resource.kubernetes_storage_class.gp2]
+  depends_on = [module.eks-cluster, module.addon-aws-ebs-csi-driver, module.node_group, resource.kubernetes_storage_class.gp2, helm_release.alb-ingress-controller]
   repository = "https://prometheus-community.github.io/helm-charts"
   name = "practice-prometheus" #release name
   chart = "prometheus" # chart name
@@ -134,7 +134,7 @@ resource "helm_release" "prometheus"{
 ################################# GRAFANA ################################# 
 resource "helm_release" "grafana"{
   count			= var.create_cluster ? 1 : 0
-  depends_on = [module.eks-cluster, module.addon-aws-ebs-csi-driver, module.node_group, resource.kubernetes_storage_class.gp2]
+  depends_on = [module.eks-cluster, module.addon-aws-ebs-csi-driver, module.node_group, resource.kubernetes_storage_class.gp2, helm_release.alb-ingress-controller]
   version = "8.5.1"
   repository = "https://grafana.github.io/helm-charts"
   name = "practice-grafana"
