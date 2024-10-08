@@ -208,8 +208,7 @@ W: Failed to fetch http://security.ubuntu.com/ubuntu/dists/noble-security/InRele
 W: Some index files failed to download. They have been ignored, or old ones used instead.
 
 10/08
-DNS CONFIG 추가했더니 private-2a와 private-2c 모두에서 apt update 성공함
-/etc/resolve.conf가 없던 게 문제였던 것 같다.
+DNS CONFIG에 nameserver로 8.8.8.8 추가했더니 private-2a와 private-2c 모두에서 apt update 성공함
 일단 3번 정도 더 terraform apply 하면서 테스트해보자
 그리고 아마 prometheus, grafana, crud, ebs-csi-controller에서도 필요함
 얘네도 각각 들어가봐서 /etc/resolve.conf가 있는지 확인해보기
@@ -219,3 +218,6 @@ dns_config 설정하지 않은 우분투의 /etc/resolve.conf 내용은 아래�
 search default.svc.cluster.local svc.cluster.local cluster.local ap-northeast-2.compute.internal
 nameserver 172.20.0.10
 options ndots:5
+
+클러스터와 통신하려면 prometheus, crud에 이 내용도 추가해야 할 것 같다
+prometheus-server는 /bin/sh 사용해야 함

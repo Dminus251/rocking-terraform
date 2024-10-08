@@ -96,7 +96,38 @@ resource "helm_release" "prometheus"{
   }
   set {
     name = "server.dnsConfig.nameservers[0]"
+    value = "172.20.0.10"
+  }
+  set {
+    name = "server.dnsConfig.nameservers[1]"
     value = "8.8.8.8"
+  }
+  set {
+    name  = "server.dnsConfig.searches[0]"
+    value = "monitoring.svc.cluster.local" #monitoring ns의 서비스 도메인
+  }
+
+  set {
+    name  = "server.dnsConfig.searches[1]"
+    value = "svc.cluster.local" #서비스 도메인
+  }
+
+  set {
+    name  = "server.dnsConfig.searches[2]"
+    value = "cluster.local" #클러스터 도메인
+  }
+  set {
+    name  = "server.dnsConfig.searches[3]"
+    value = "ap-northeast-2.compute.internal" 
+  }
+  set {
+    name  = "server.dnsConfig.options[0].name"
+    value = "ndots"
+  }
+
+  set {
+    name  = "server.dnsConfig.options[0].value"
+    value = "\"5\""
   }
 }
 
@@ -127,7 +158,38 @@ resource "helm_release" "grafana"{
     value = "None"
   }
   set {
-    name = "dnsConfig.nameservers[0]"
-    value = "8.8.8.8"
+    name = "dnsConfig.nameservers[0]" #kubernetes coreDNS
+    value = "172.20.0.10"
   } 
+  set {
+    name = "dnsConfig.nameservers[1]"
+    value = "8.8.8.8"
+  }
+  
+  set {
+    name  = "dnsConfig.searches[0]"
+    value = "monitoring.svc.cluster.local" #monitoring ns의 서비스 도메인
+  }
+
+  set {
+    name  = "dnsConfig.searches[1]"
+    value = "svc.cluster.local" #서비스 도메인
+  }
+
+  set {
+    name  = "dnsConfig.searches[2]"
+    value = "cluster.local" #클러스터 도메인
+  }
+  set {
+    name  = "dnsConfig.searches[3]"
+    value = "ap-northeast-2.compute.internal" 
+  }
+  set {
+  name  = "dnsConfig.options[0].name"
+  value = "ndots"
+}
+  set {
+    name  = "dnsConfig.options[0].value"
+    value = "\"5\""
+  }
 }
