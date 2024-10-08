@@ -157,3 +157,60 @@ yyk@localhost:~/practice_terraform/demo10-docker$ k logs ebs-csi-controller-7674
 Defaulted container "ebs-plugin" out of: ebs-plugin, csi-provisioner, csi-attacher, csi-snapshotter, csi-resizer, liveness-probe
 I1007 01:08:57.621446       1 main.go:151] "Region provided via AWS_REGION environment variable" region="ap-northeast-2"
 I1007 01:08:57.623182       1 driver.go:69] "Driver Information" Driver="ebs.csi.aws.com" Version="v1.35.0"
+
+10/7
+그냥 10.0.0.0/24의 pod는 인터넷과 통신되지 않는 것을 확인함
+10.0.0.0/24에 직접 ec2를 생성하면 인터넷과 통신이 되는 것도 확인함
+즉 pod가 인터넷과 통신 불가능 ..
+또 clusterIP 못 찾던 것도 생각해야 함
+sudo scp -i 0827.pem ./0827.pem ubuntu@52.78.118.66:/home/ubuntu/
+
++ 추가
+이번엔 10.0.0.0/24의 pod는 되는데 10.0.2.0/24가 안 되네
+terraform apply마다 이렇게 설정이 바뀌는 이유가 뭐지?
+관련 로그
+
+10.0.0.0/24
+yyk@localhost:~$ k exec -it ubuntu-2a -- /bin/bash
+root@ubuntu-2a:/# apt update
+Get:1 http://archive.ubuntu.com/ubuntu noble InRelease [256 kB]
+Get:2 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+(중간 생략)
+Get:16 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [682 kB]
+Get:17 http://archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [11.8 kB]
+Fetched 25.2 MB in 5s (4891 kB/s)
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+2 packages can be upgraded. Run 'apt list --upgradable' to see them.
+
+10.0.2.0/24
+yyk@localhost:~/rocking-terraform$ k exec -it ubuntu-2c -- /bin/bash
+root@ubuntu-2c:/# apt update
+Ign:1 http://security.ubuntu.com/ubuntu noble-security InRelease
+(중간 생략)
+Err:1 http://security.ubuntu.com/ubuntu noble-security InRelease
+  Temporary failure resolving 'security.ubuntu.com'
+Err:2 http://archive.ubuntu.com/ubuntu noble InRelease
+  Temporary failure resolving 'archive.ubuntu.com'
+Err:3 http://archive.ubuntu.com/ubuntu noble-updates InRelease
+  Temporary failure resolving 'archive.ubuntu.com'
+Err:4 http://archive.ubuntu.com/ubuntu noble-backports InRelease
+  Temporary failure resolving 'archive.ubuntu.com'
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+All packages are up to date.
+W: Failed to fetch http://archive.ubuntu.com/ubuntu/dists/noble/InRelease  Temporary failure resolving 'archive.ubuntu.com'
+W: Failed to fetch http://archive.ubuntu.com/ubuntu/dists/noble-updates/InRelease  Temporary failure resolving 'archive.ubuntu.com'
+W: Failed to fetch http://archive.ubuntu.com/ubuntu/dists/noble-backports/InRelease  Temporary failure resolving 'archive.ubuntu.com'
+W: Failed to fetch http://security.ubuntu.com/ubuntu/dists/noble-security/InRelease  Temporary failure resolving 'security.ubuntu.com'
+W: Some index files failed to download. They have been ignored, or old ones used instead.
+
+10/08
+DNS CONFIG 추가했더니 private-2a와 private-2c 모두에서 apt update 성공함
+/etc/resolve.conf가 없던 게 문제였던 것 같다.
+일단 3번 정도 더 terraform apply 하면서 테스트해보자
+그리고 아마 prometheus, grafana, crud, ebs-csi-controller에서도 필요함
+얘네도 각각 들어가봐서 /etc/resolve.conf가 있는지 확인해보기
+ebs는 addon인데 helm으로 바꿔야 하나? (addon은 dns_config 수정 불가)

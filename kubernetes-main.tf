@@ -241,7 +241,7 @@ resource "kubernetes_storage_class" "gp2" {
 
 
 resource "kubernetes_pod" "ubuntu-private_subnet-2a" {
-  depends_on = [module.eks-cluster, module.node_group, null_resource.build_image, helm_release.grafana]
+  depends_on = [module.eks-cluster, module.node_group]
   count			= var.create_cluster ? 1 : 0
   metadata {
     name = "ubuntu-2a"
@@ -256,6 +256,11 @@ resource "kubernetes_pod" "ubuntu-private_subnet-2a" {
       port {
         container_port = 5001
       }
+    }
+    dns_policy = "None" #defalt는 ClusterFirst
+    #custom dns_config를 위해 dns_policy를 None으로 설정해야 함
+    dns_config {
+      nameservers = ["8.8.8.8"]
     }
     affinity{
       node_affinity{
@@ -275,7 +280,7 @@ resource "kubernetes_pod" "ubuntu-private_subnet-2a" {
 
 
 resource "kubernetes_pod" "ubuntu-private_subnet-2c" {
-  depends_on = [module.eks-cluster, module.node_group, null_resource.build_image, helm_release.grafana]
+  depends_on = [module.eks-cluster, module.node_group]
   count			= var.create_cluster ? 1 : 0
   metadata {
     name = "ubuntu-2c"
@@ -292,6 +297,10 @@ resource "kubernetes_pod" "ubuntu-private_subnet-2c" {
       }
     }
     
+    dns_policy = "None"
+    dns_config {
+      nameservers = ["8.8.8.8"]
+    }
     affinity{
       node_affinity{
         required_during_scheduling_ignored_during_execution{
