@@ -35,7 +35,7 @@
 ### Grafana 대시보드 템플릿을 이용하여 현재 클러스터 모니터링 환경을 구축했습니다.
 ![download (4)](https://github.com/user-attachments/assets/af55737c-a216-47c3-ad63-da5da1701f46)
 
-## 3. CRUD
+## 4. CRUD
 Flask Server 또한 ingress를 이용해 crud.dududrb.shop 레코드에 배포했습니다.
 
 ### health check
