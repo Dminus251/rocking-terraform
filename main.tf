@@ -138,6 +138,27 @@ module "rta-internet_to_nat" {
   rt-id = module.route_table-internet_to_nat[count.index].rt-id
 }
 
+#Route Table: 10.0.0.0/24 to local, 10.0.2.0/24 to local
+#10.0.0.0/24 to local은 10.0.2.0/24에 붙이고
+#10.0.2.0/24 to local은 10.0.0.0/24에 붙여야 함 (클러스터 간 통신을 위해)
+#module "route_table-private_to_private" { 
+#  source     = "./modules/t-aws-rt-nat"
+#  count      = length(module.private_subnet)
+#  vpc-id     = module.vpc.vpc-id
+#  cidr_block = module.private_subnet[count.index].private_subnet-cidr[0] #from
+#  gateway-id = "local" #to
+#  rt-usage   = "practice"
+#}
+
+#Associate Route Table: route_table_internet_to_nat with Private Subnet
+#module "rta-private_to_prrivate" { 
+#  count = length(module.route_table-private_to_private)
+#  source = "./modules/t-aws-rta"
+#  #subnet-id = module.private_subnet[count.index].private_subnet-id
+#  subnet-id = count.index == 0 ? module.private_subnet[1].private_suubnet-id : module.private_subnet[0].private_subnet-id
+#  rt-id = module.route_table-internet_to_nat[count.index].rt-id
+#}
+
 #Public EC2
 #module "ec2_public" {
 #  source       = "./modules/t-aws-ec2"
@@ -218,6 +239,7 @@ module "sg-node_group" {
 
 #ebs-csi-controller 통신 테스트를 위해 임시로 포트 허용
 module "temporary_allow_port" {
+  count		       = var.create_cluster ? 1 : 0
   source		= "./modules/t-aws-sg_rule-cidr"
   description      = "temporary"
   sg_rule-type              = "ingress"

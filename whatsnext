@@ -227,3 +227,12 @@ grafana pod에 접속해서 아래 명령 중 하나 입력해서 테스트
   - curl http://practice-clusterip.monitoring.svc.cluster.local:9090
   - curl http://{service_ip}:9090
 /metrics 경로에 curl 보내면 메트릭 얻어올 수 있음
+
+10/09
+추가적인 문제 발견함
+clusterIp service를 사용할 pod (내 경우 grafana)와 coreDns가 실행 중인 노드의 서브넷이 다를 경우 도메인을 찾을 수 없음ㅇ
+에를 들어 
+  - curl http://practice-clusterip.monitoring.svc.cluster.local:9090 명령은 실패하는데
+  - curl http://{service_ip}:9090 명령은 성공함
+보안 그룹에선 이미 private subnet 간 모든 포트를 허용해놨음
+라우팅 테이블도 해야할까?

@@ -227,6 +227,7 @@ resource "kubernetes_service_v1" "cluster-ip" {
 #grafana Pod는 pvc가 Running이 될 때까지 Pending 상태가 됨
 #즉 pvc와 pod가 서로 running 상태가 될 때까지 기다리는 교착 상태 발생
 resource "kubernetes_storage_class" "gp2" {
+  count		       = var.create_cluster ? 1 : 0
   depends_on = [module.eks-cluster, module.public_subnet, module.node_group]
   metadata {
     name = "terraform-example"
