@@ -230,9 +230,9 @@ grafana pod에 접속해서 아래 명령 중 하나 입력해서 테스트
 
 10/09
 추가적인 문제 발견함
-clusterIp service를 사용할 pod (내 경우 grafana)와 coreDns가 실행 중인 노드의 서브넷이 다를 경우 도메인을 찾을 수 없음ㅇ
-에를 들어 
+clusterIp service를 사용할 pod (내 경우 grafana)와 coreDns가 실행 중인 노드의 서브넷이 다를 경우 도메인을 찾을 수 없음
+에를 들어coreDns pod는 10.0.0.0/24에서, grafana pod는 10.0.2.0/24에서 실행 중일 경우
   - curl http://practice-clusterip.monitoring.svc.cluster.local:9090 명령은 실패하는데
   - curl http://{service_ip}:9090 명령은 성공함
-보안 그룹에선 이미 private subnet 간 모든 포트를 허용해놨음
-라우팅 테이블도 해야할까?
+라우팅 테이블 문제인가? -> 같은 vpc 내에선 라우팅 테이블을 설정하지 않아도 aws가 자동으로 처리해준다고 한다 ..
+-> 해결함, 이전엔 private_subnet간 1024 ~ 65535 포트만 허용했었는데 모든 포트 허용하도록 변경하니 잘 해결됨

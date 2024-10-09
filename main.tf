@@ -1,4 +1,3 @@
-#기존 main.tf에서 가용성을 없애고 비용을 줄인 파일입니다.
 locals {
   any_port     = 0
   any_protocol = "-1"
@@ -138,26 +137,6 @@ module "rta-internet_to_nat" {
   rt-id = module.route_table-internet_to_nat[count.index].rt-id
 }
 
-#Route Table: 10.0.0.0/24 to local, 10.0.2.0/24 to local
-#10.0.0.0/24 to local은 10.0.2.0/24에 붙이고
-#10.0.2.0/24 to local은 10.0.0.0/24에 붙여야 함 (클러스터 간 통신을 위해)
-#module "route_table-private_to_private" { 
-#  source     = "./modules/t-aws-rt-nat"
-#  count      = length(module.private_subnet)
-#  vpc-id     = module.vpc.vpc-id
-#  cidr_block = module.private_subnet[count.index].private_subnet-cidr[0] #from
-#  gateway-id = "local" #to
-#  rt-usage   = "practice"
-#}
-
-#Associate Route Table: route_table_internet_to_nat with Private Subnet
-#module "rta-private_to_prrivate" { 
-#  count = length(module.route_table-private_to_private)
-#  source = "./modules/t-aws-rta"
-#  #subnet-id = module.private_subnet[count.index].private_subnet-id
-#  subnet-id = count.index == 0 ? module.private_subnet[1].private_suubnet-id : module.private_subnet[0].private_subnet-id
-#  rt-id = module.route_table-internet_to_nat[count.index].rt-id
-#}
 
 #Public EC2
 #module "ec2_public" {
@@ -237,16 +216,15 @@ module "sg-node_group" {
 #  sg_rule-source_sg_id = module.sg-node_group.sg-id #허용할 sg
 #}
 
-#ebs-csi-controller 통신 테스트를 위해 임시로 포트 허용
-module "temporary_allow_port" {
-  count		       = var.create_cluster ? 1 : 0
-  source		= "./modules/t-aws-sg_rule-cidr"
-  description      = "temporary"
+#private subnet끼리의 모든 통신 허용
+module "sg_rule_ng-allow_private_subnet" {
+  count		            = var.create_cluster ? 1 : 0
+  source      		    = "./modules/t-aws-sg_rule-cidr"
   sg_rule-type              = "ingress"
-  sg_rule-from_port         = 1024
-  sg_rule-to_port           = 65535
-  sg_rule-protocol          = "tcp"
-  sg_rule-sg_id = module.sg-node_group[0].sg-id
+  sg_rule-from_port         = local.any_port
+  sg_rule-to_port           = local.any_port
+  sg_rule-protocol          = local.any_protocol
+  sg_rule-sg_id             = module.sg-node_group[0].sg-id
   sg_rule-cidr_blocks	    = ["10.0.0.0/24", "10.0.2.0/24"] #허용할 cidr block
 }
 
