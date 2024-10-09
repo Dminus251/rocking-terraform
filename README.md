@@ -1,12 +1,10 @@
 # Rocking Terraform
 - **Terraform**과 AWS 인프라 구축 연습을 하기 위해 혼자서 진행한 프로젝트입니다.
-- 또한 간단한 Amazon EBS에 대해 CRUD 작업을 수행할 수 있는 **Python Flask Server**를 이미지로 만들어 **도커** 허브에 push하고, 이를 pod로 실행합니다.
-
 
 # 주요 기능
 ## 1. Infra Provisioning
 아래 사진과 같은 인프라를 프로비저닝합니다.
-![demo11 (2) drawio (1)](https://github.com/user-attachments/assets/1234a8c1-14e7-4ffa-9cbb-40427a34f931)
+![demo11 drawio (3)](https://github.com/user-attachments/assets/caa02d8b-0b66-4cc7-bab3-f9f1e76c65f3)
 - **3계층 아키텍처**를 구성했으며, **가용성**을 위해 ap-northeast-2a와 ap-northeast-2c 가용 영역을 사용했습니다.
 - Private Subnet은 **AWS EKS**를 이용해 관리합니다. EKS에서 실행되는 서버에서는 간단한 CRUD 작업을 수행할 수 있습니다.
 - EKS Cluster에는 aws-loadbalancer-controller, prometheus, grafana Pod를 실행합니다.
