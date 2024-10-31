@@ -216,6 +216,17 @@ module "sg-node_group" {
 #  sg_rule-source_sg_id = module.sg-node_group.sg-id #허용할 sg
 #}
 
+#클러스터 추가 보안 그룹에 로컬의 모든 포트를 허용
+module "sg_rule_cluster-allow_local" {
+  source               = "./modules/t-aws-sg_rule-cidr"
+  sg_rule-type         = "ingress"
+  sg_rule-from_port    = local.any_port
+  sg_rule-to_port      = local.any_port
+  sg_rule-protocol     = "tcp"
+  sg_rule-sg_id        = module.sg-node_group[0].sg-id #규칙을 적용할 sg
+  sg_rule-cidr_blocks  = ["127.0.0.1/32"] #로컬의 모든 포트를 허용
+}
+
 #private subnet끼리의 모든 통신 허용
 module "sg_rule_ng-allow_private_subnet" {
   count		            = var.create_cluster ? 1 : 0

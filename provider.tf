@@ -22,3 +22,16 @@ provider "helm" {
   }
 }
 
+terraform {
+  required_providers {
+    kustomization = {
+      source  = "kbst/kustomization"
+      version = "0.9.0"
+    }
+  }
+}
+
+provider "kustomization" {
+  kubeconfig_path = "~/.kube/config"
+#ref: https://registry.terraform.io/providers/kbst/kustomization/latest/docs#context
+}
