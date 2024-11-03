@@ -31,19 +31,6 @@ module "public_subnet" {
 
 #Private Subnet
 module "private_subnet" { #Private Subnet
-  source 	      = "./modules/t-aws-private_subnet"
-  count 	      = 1 
-
-  vpc-id 	      = module.vpc.vpc-id
-
-  private_subnet-cidr = var.private_subnet-cidr[0] 
-
-  private_subnet-az   = var.private_subnet-az[0] 
-
-  private_subnet-name = var.private_subnet-name[count.index]
-}
-#Private Subnet
-module "private_subnet" { #Private Subnet
   source              = "./modules/t-aws-private_subnet"
   count              = length(var.private_subnet-cidr)
 
