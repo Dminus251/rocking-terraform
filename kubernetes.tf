@@ -282,7 +282,8 @@ resource "kubernetes_pod" "ubuntu-private_subnet-2a" {
 
 resource "kubernetes_pod" "ubuntu-private_subnet-2c" {
   depends_on = [module.eks-cluster, module.node_group]
-  count			= var.create_cluster ? 1 : 0
+  #count			= var.create_cluster ? 1 : 0
+  count			= 0 #nomoney에서는 2a az만 사용하므로 2c는 없음
   metadata {
     name = "ubuntu-2c"
     namespace = "default"

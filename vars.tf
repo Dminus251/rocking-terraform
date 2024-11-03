@@ -94,4 +94,3 @@ variable "create_rds" {
   type        = bool
   default     = false
 }
-

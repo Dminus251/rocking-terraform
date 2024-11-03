@@ -98,10 +98,10 @@ resource "helm_release" "prometheus"{
     name = "server.dnsConfig.nameservers[0]"
     value = "172.20.0.10"
   }
-  #set { #어차피 coreDNS가 외부 IP 해석 가능
-  #  name = "server.dnsConfig.nameservers[1]"
-  #  value = "8.8.8.8"
-  #}
+  set {
+    name = "server.dnsConfig.nameservers[1]"
+    value = "8.8.8.8"
+  }
   set {
     name  = "server.dnsConfig.searches[0]"
     value = "monitoring.svc.cluster.local" #monitoring ns의 서비스 도메인
@@ -161,10 +161,10 @@ resource "helm_release" "grafana"{
     name = "dnsConfig.nameservers[0]" #kubernetes coreDNS
     value = "172.20.0.10"
   } 
-  #set { #coreDNS가 외부 IP 해석 가능
-  #  name = "dnsConfig.nameservers[1]"
-  #  value = "8.8.8.8"
-  #}
+  set {
+    name = "dnsConfig.nameservers[1]"
+    value = "8.8.8.8"
+  }
   
   set {
     name  = "dnsConfig.searches[0]"
