@@ -58,4 +58,5 @@ DELETE 메서드를 사용하여 id가 2인 값을 제거했습니다.
 READ 결과 id가 1인 값만 남아 있습니다.
 ![download (6)](https://github.com/user-attachments/assets/546a0701-f8a8-4137-b08d-44c9853cc9bc)
 
-
+# 리소스 제거
+리소스를 제거할 땐 delete_resource 파일을 실행 후 terraform destroy 명령을 실행합니다.
