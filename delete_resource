@@ -1,0 +1,22 @@
+#terraform destroy로 지워지지 않는 리소스 정리
+#terraform destroy 전에 실행할 것
+#ingress로 프로비저닝되는 alb는 콘솔에서 직접 제거해야 함
+#alb에 sg가 할당되는데, sg 때문에 vpc가 제거되지 않으므로 vpc도 콘솔에서 직접 제거해야 함
+
+kubectl delete pod ubuntu-2a --grace-period=0 --force
+kubectl delete pod ubuntu-2c --grace-period=0 --force
+kubectl delete pod pod-crud -n monitoring --grace-period=0 --force
+kubectl patch ingress ingress-crud -n monitoring -p '{"metadata":{"finalizers":[]}}' --type=merge
+kubectl patch ingress ingress-prometheus -n monitoring -p '{"metadata":{"finalizers":[]}}' --type=merge
+kubectl patch ingress ingress-grafana -n monitoring -p '{"metadata":{"finalizers":[]}}' --type=merge
+k delete ingress ingress-prometheus -n monitoring
+k delete ingress ingress-grafana -n monitoring
+k delete ingress ingress-crud -n monitoring
+helm uninstall aws-load-balancer-controller -n kube-system
+helm uninstall practice-grafana -n monitoring
+helm uninstall practice-prometheus -n monitoring
+kubectl delete svc service-grafana -n monitorinig
+kubectl delete svc service-prometheus -n monitoring
+kubectl delete pod pod-crud -n monitoring --grace-period=0 --force
+terraform state rm helm_release.grafana[0]
+terraform state rm helm_release.prometheus[0]
