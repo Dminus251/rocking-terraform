@@ -1,3 +1,6 @@
+#비용 절약을 위해 rocking_terraform 디렉터리의 이중화를 없앰
+#수정된 내용은 주석 후, 새로운 내용에 #e를 붙임
+
 locals {
   any_port     = 0
   any_protocol = "-1"
@@ -15,20 +18,28 @@ module "vpc" {
 #Public Subnet
 module "public_subnet" { 
   source 	     = "./modules/t-aws-public_subnet"
-  count 	     = length(var.public_subnet-cidr)
+  #count 	     = length(var.public_subnet-cidr)
+  count 	     = 1 #e
   vpc-id	     = module.vpc.vpc-id
-  public_subnet-cidr = var.public_subnet-cidr[count.index]
-  public_subnet-az   = count.index % 2 == 0 ? var.public_subnet-az[0] : var.public_subnet-az[1]
-  public_subnet-name = var.public_subnet-name[count.index]
+  #public_subnet-cidr = var.public_subnet-cidr[count.index]
+  public_subnet-cidr = var.public_subnet-cidr[0] #e
+  #public_subnet-az   = count.index % 2 == 0 ? var.public_subnet-az[0] : var.public_subnet-az[1]
+  public_subnet-az   = var.public_subnet-az[0] #e
+  #public_subnet-name = var.public_subnet-name[count.index]
+  public_subnet-name = var.public_subnet-name[0] #e
 }
 
 #Private Subnet
 module "private_subnet" { #Private Subnet
-  source 	      = "./modules/t-aws-private_subnet"
-  count 	      = length(var.private_subnet-cidr)
-  vpc-id 	      = module.vpc.vpc-id
+  source              = "./modules/t-aws-private_subnet"
+  count              = length(var.private_subnet-cidr)
+
+  vpc-id              = module.vpc.vpc-id
+
   private_subnet-cidr = var.private_subnet-cidr[count.index]
+
   private_subnet-az   = count.index % 2 == 0 ? var.private_subnet-az[0] : var.private_subnet-az[1]
+
   private_subnet-name = var.private_subnet-name[count.index]
 }
 
@@ -36,9 +47,13 @@ module "private_subnet" { #Private Subnet
 module "db_subnet" { #DB Subnet
   source 	      = "./modules/t-aws-private_subnet"
   count 	      = length(var.db_subnet-cidr)
+
   vpc-id 	      = module.vpc.vpc-id
+
   private_subnet-cidr = var.db_subnet-cidr[count.index]
+
   private_subnet-az   = count.index % 2 == 0 ? var.db_subnet-az[0] : var.db_subnet-az[1]
+
   private_subnet-name = var.db_subnet-name[count.index]
 }
 
@@ -99,42 +114,68 @@ module "route_table-igw_to_vpc" {
 #Associate Route Table: route_table_igw_to_vpc with Public Subnet
 module "rta-internet_to_public_subnet" {
   source    = "./modules/t-aws-rta"
-  count     = length(module.public_subnet) #이만큼 반복해서 모듈 생성
-  subnet-id = module.public_subnet[count.index].public_subnet-id
+  #count     = length(module.public_subnet) #이만큼 반복해서 모듈 생성
+  count	    = 1 #e
+
+  #subnet-id = module.public_subnet[count.index].public_subnet-id
+  subnet-id = module.public_subnet[0].public_subnet-id #e
+
   rt-id     = module.route_table-igw_to_vpc.rt-id
 }
 
-#Elastic IP
+#Elastic IP 
 module "eip" {
   source = "./modules/t-aws-eip"
-  count  = length(module.private_subnet)
+
+  #count  = length(module.private_subnet)
+  count = 1 #e
 }
 
-#NAT Gateway
+#NAT Gateway 
 module "nat" { #NAT Gateway
-  count = length(module.public_subnet)
+  #count = length(module.public_subnet) 
+  count = 1 #e
+
   source    = "./modules/t-aws-nat"
-  eip-id    = module.eip[count.index].eip-id
-  subnet-id = module.public_subnet[count.index].public_subnet-id  #nat는 public subnet에 위치해야 함
-  nat-name  = "practice-nat${count.index}"
+
+  #eip-id    = module.eip.eip-id
+  eip-id    = module.eip[count.index].eip-id #e
+
+  #subnet-id = module.public_subnet[count.index].public_subnet-id  #nat는 public subnet에 위치해야 함
+  subnet-id = module.public_subnet[0].public_subnet-id  #e
+
+  #nat-name  = "practice-nat${count.index}"
+  nat-name  = "practice-nat" #e
 }
 
 
 #Route Table: 0.0.0.0/0 to NAT
 module "route_table-internet_to_nat" { 
   source     = "./modules/t-aws-rt-nat"
-  count      = length(module.private_subnet)
+
+  #count      = length(module.private_subnet)
+  count      = 1 #e
+
   vpc-id     = module.vpc.vpc-id
-  gateway-id = module.nat[count.index].nat-id
+
+  #gateway-id = module.nat[count.index].nat-id
+  gateway-id = module.nat[0].nat-id #e
+
   rt-usage   = "nat"
 }
 
 #Associate Route Table: route_table_internet_to_nat with Private Subnet
 module "rta-internet_to_nat" { 
-  count = length(module.private_subnet)
+  #count = length(module.private_subnet)
+  count = 1 #e
+
   source = "./modules/t-aws-rta"
-  subnet-id = module.private_subnet[count.index].private_subnet-id
-  rt-id = module.route_table-internet_to_nat[count.index].rt-id
+
+  #subnet-id = module.private_subnet[count.index].private_subnet-id
+  subnet-id = module.private_subnet[0].private_subnet-id #e
+
+  #rt-id = module.route_table-internet_to_nat[count.index].rt-id
+  rt-id = module.route_table-internet_to_nat[0].rt-id #e
 }
 
 
@@ -215,17 +256,6 @@ module "sg-node_group" {
 #  sg_rule-sg_id	       = module.sg-cluster.sg-id #규칙을 적용할 sg
 #  sg_rule-source_sg_id = module.sg-node_group.sg-id #허용할 sg
 #}
-
-#클러스터 추가 보안 그룹에 로컬의 모든 포트를 허용
-module "sg_rule_cluster-allow_local" {
-  source               = "./modules/t-aws-sg_rule-cidr"
-  sg_rule-type         = "ingress"
-  sg_rule-from_port    = local.any_port
-  sg_rule-to_port      = local.any_port
-  sg_rule-protocol     = "tcp"
-  sg_rule-sg_id        = module.sg-node_group[0].sg-id #규칙을 적용할 sg
-  sg_rule-cidr_blocks  = ["127.0.0.1/32"] #로컬의 모든 포트를 허용
-}
 
 #private subnet끼리의 모든 통신 허용
 module "sg_rule_ng-allow_private_subnet" {
@@ -477,16 +507,28 @@ module "lt-ng"{
 }
 
 module "node_group"{
-  for_each         = var.create_cluster ? {for i, subnet in module.private_subnet: i => subnet} : {}
+  #for_each         = var.create_cluster ? {for i, subnet in module.private_subnet: i => subnet} : {}
+  count		   = 1 #e
+
   source 	   = "./modules/t-aws-eks/ng"
+
   cluster-name     = module.eks-cluster[0].cluster-name
-  ng-name 	   = "practice-ng-${each.key}"
+  #ng-name 	   = "practice-ng-${each.key}"
+  ng-name 	   = "practice-ng" #e
+
   ng-role_arn      = module.ng-role[0].arn
-  subnet-id	   = [each.value["private_subnet-id"]]
+
+  #subnet-id	   = [each.value["private_subnet-id"]]
+  subnet-id	   = [module.private_subnet[0].private_subnet-id] #e
+
   ng-lt_id         = module.lt-ng[0].lt_id 
   depends_on       = [module.eks-cluster, module.ng-role]
-  ng-labels = { #얘도 둘다 2c 나옴
-  "subnet" = "private_subnet-${each.key == "0" ? "2a" : "2c"}"
+
+  #ng-labels = { #얘도 둘다 2c 나옴
+  #	"subnet" = "private_subnet-${each.key == "0" ? "2a" : "2c"}"
+  #} 
+  ng-labels = { #e
+  	"subnet" = "private_subnet-2a" 
   } 
 }
 

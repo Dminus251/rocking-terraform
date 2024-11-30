@@ -4,10 +4,10 @@
 # 주요 기능
 ## 1. Infra Provisioning
 아래 사진과 같은 인프라를 프로비저닝합니다.
-![demo11 (2) drawio (2)](https://github.com/user-attachments/assets/a9dc4660-44f6-4b7a-8ce7-3ed446acbf39)
+![demo11 drawio (3)](https://github.com/user-attachments/assets/caa02d8b-0b66-4cc7-bab3-f9f1e76c65f3)
 - **3계층 아키텍처**를 구성했으며, **가용성**을 위해 ap-northeast-2a와 ap-northeast-2c 가용 영역을 사용했습니다.
-- Private Subnet은 **AWS EKS**를 이용해 관리합니다. EKS에서 실행되는 서버에서는 DB에 대해 CRUD 작업을 수행할 수 있습니다.
-- EKS Cluster에는 aws-loadbalancer-controller, prometheus, grafana Pod를 배포합니다.
+- Private Subnet은 **AWS EKS**를 이용해 관리합니다. EKS에서 실행되는 서버에서는 간단한 CRUD 작업을 수행할 수 있습니다.
+- EKS Cluster에는 aws-loadbalancer-controller, prometheus, grafana Pod를 실행합니다.
 
 ## 2. Docker
 - RDS 프로비저닝이 완료되면 db의 endpoint, name, user, password를 json 파일로 만들어 yyk-server/에 저장합니다.
